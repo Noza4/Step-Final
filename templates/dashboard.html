@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Job Board Dashboard</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>Job Board Dashboard</h1>
+  </header>
+
+  <div class="container dashboard-container">
+    <div class="search-bar">
+      <input type="text" placeholder="Search for jobs...">
+      <button class="btn">Search</button>
+    </div>
+
+    <!-- Job Seeker Section -->
+    {% if role == "Job Seeker" %}
+    <section id="user-section" class="job-section">
+      <h2>Available Jobs</h2>
+
+      {% if jobs %}
+        <div class="job-list">
+          {% for job in jobs %}
+          <div class="job-card">
+            <h3>{{ job.title }}</h3>
+            <p><strong>Company:</strong> {{ job.company_name }}</p>
+            <p><strong>Work Type:</strong> {{ job.work_type }}</p>
+            <button class="btn apply-btn">Apply Now</button>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No jobs available at the moment.</p>
+      {% endif %}
+    </section>
+    {% endif %}
+  </div>
+</body>
+</html>
