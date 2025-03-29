@@ -15,6 +15,8 @@
   <div class="container dashboard-container">
     {% if role == "Job_Seeker" %}
       <h2>Available Jobs</h2>
+    <input type="text" id="search-box" placeholder="Search jobs by title..." class="search-input">
+
       <div class="job-list">
         {% for job in jobs %}
           <div class="job-card">
@@ -68,6 +70,21 @@
   </div>
 
   <script>
+    document.getElementById('search-box').addEventListener('input', function() {
+  let searchQuery = this.value.toLowerCase().trim();
+  let jobCards = document.querySelectorAll('.job-card');
+
+  jobCards.forEach(card => {
+    let jobTitle = card.querySelector('h3').textContent.toLowerCase();
+    if (jobTitle.includes(searchQuery)) {
+      card.style.display = ""; // Reset to default CSS display
+    } else {
+      card.style.display = "none"; // Hide unmatched jobs
+    }
+  });
+});
+
+
     document.getElementById('post-job-btn').addEventListener('click', function() {
       // Get the form data
       const title = document.getElementById('job-title').value;
