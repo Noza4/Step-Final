@@ -29,5 +29,7 @@ urlpatterns = [
     path('job/<int:job_id>/', job_detail, name='job_detail'),
     path('login/', custom_login, name='login'),
     path('role', role_page, name='role'),
+    path('api/jobs/<int:pk>/', JobDetailView.as_view(), name='job_detail_api')
+
 ]
 

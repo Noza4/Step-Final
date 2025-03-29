@@ -21,7 +21,7 @@
             <h3>{{ job.title }}</h3>
             <p><strong>Company:</strong> {{ job.company_name }}</p>
             <p><strong>Work Type:</strong> {{ job.work_type }}</p>
-            <a href="{% url 'job_detail' job.id %}" class="btn apply-btn">Apply Now</a>
+            <a href="{% url 'job_detail' job.id %}" class="btn apply-btn">Details</a>
           </div>
         {% empty %}
           <p>No jobs available.</p>
