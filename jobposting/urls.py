@@ -32,6 +32,7 @@ urlpatterns = [
     path('role', role_page, name='role'),
     path('role/', views.role_page, name='role'),
     # path('api/jobs/<int:pk>/', JobDetailView.as_view(), name='job_detail_api')
+    path('apply/<int:job_id>/', views.apply_for_job, name='apply_for_job'),
 
 ]
 

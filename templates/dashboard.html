@@ -1,4 +1,6 @@
 {% load static %}
+{% load custom_tags %}  {# Loads the get_item filter #}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,6 +29,7 @@
           <p>No jobs available.</p>
         {% endfor %}
       </div>
+
     {% elif role == "Employer" %}
       <h2>Your Posted Jobs</h2>
       <div class="job-list">
@@ -36,11 +39,23 @@
             <p><strong>Company:</strong> {{ job.company_name }}</p>
             <p><strong>Work Type:</strong> {{ job.work_type }}</p>
             <button class="btn edit-btn">Edit Vacancy</button>
+
+            {% with applicants=job_applicants|get_item:job.id %}
+              {% if applicants %}
+                <h4>Applicants:</h4>
+                <ul>
+                  {% for applicant in applicants %}
+                    <li>{{ applicant.first_name }} ({{ applicant.email }})</li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p>No applicants yet.</p>
+              {% endif %}
+            {% endwith %}
           </div>
-        {% empty %}
-          <p>You haven't posted any jobs yet.</p>
         {% endfor %}
       </div>
+
       <div class="post-job">
         <h3>Post a New Job</h3>
         <form id="post-job-form">
@@ -69,12 +84,10 @@
 
   <script>
     document.getElementById('post-job-btn').addEventListener('click', function() {
-      // Get the form data
       const title = document.getElementById('job-title').value;
       const company_name = document.getElementById('company').value;
       const work_type = document.getElementById('work-type').value;
 
-      // Create the POST request
       fetch("{% url 'post_job_api' %}", {
         method: 'POST',
         headers: {
@@ -91,7 +104,7 @@
       .then(data => {
         if (data.title) {
           alert("Job posted successfully!");
-          location.reload(); // Reload the page to see the new job
+          location.reload();
         } else {
           alert("Error posting job!");
         }

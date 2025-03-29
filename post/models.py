@@ -1,8 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-
-# Create your models here.
 class Job(models.Model):
     WORK_TYPE_CHOICES = [
         ('Remote', 'Remote'),
@@ -18,3 +16,15 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.company_name}"
+
+
+class JobApplication(models.Model):
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('job', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} applied for {self.job.title}"

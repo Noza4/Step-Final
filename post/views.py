@@ -11,8 +11,10 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from post.models import Job
+from post.models import Job, JobApplication
 from post.serializers import JobSerializer
+from django.http import JsonResponse
+
 
 
 def register(request):
@@ -125,3 +127,46 @@ def custom_login(request):
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
+
+
+@login_required
+def apply_for_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+
+    # Fix: change applicant → user
+    if JobApplication.objects.filter(job=job, user=request.user).exists():
+        messages.info(request, "You have already applied for this job.")
+    else:
+        JobApplication.objects.create(job=job, user=request.user)
+        messages.success(request, "You have successfully applied for the job.")
+
+    return redirect('job_detail', job_id=job.id)
+
+
+@login_required
+def dashboard(request):
+    role = request.GET.get('role', '')
+
+    if role == "Job_Seeker":
+        jobs = Job.objects.all()
+        context = {
+            "role": role,
+            "jobs": jobs
+        }
+    elif role == "Employer":
+        jobs = Job.objects.filter(employer=request.user)
+
+        job_applicants = {}
+        for job in jobs:
+            applications = JobApplication.objects.filter(job=job).select_related("user")
+            job_applicants[job.id] = [app.user for app in applications]
+
+        context = {
+            "role": role,
+            "jobs": jobs,
+            "job_applicants": job_applicants,
+        }
+    else:
+        return redirect("role")
+
+    return render(request, "dashboard.html", context)
