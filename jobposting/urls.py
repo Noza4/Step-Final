@@ -21,7 +21,7 @@ from django.urls import path, include
 
 from post import views
 from post.urls import url_patterns
-from post.views import post_job, job_detail, custom_login, role_page
+from post.views import post_job, job_detail, custom_login, role_page, JobDetailView
 
 urlpatterns = [
     path('admin/', admin.site.urls),

@@ -11,10 +11,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from post.models import Job, JobApplication
+from post.models import Job
 from post.serializers import JobSerializer
-from django.http import JsonResponse
-
 
 
 def register(request):
@@ -109,64 +107,18 @@ def job_detail(request, job_id):
 
 def custom_login(request):
     if request.method == "POST":
-        form = AuthenticationForm(request, data=request.POST)  # Pass request here
+        form = AuthenticationForm(data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            print("Login successful, redirecting to role page...")  # Debug message
 
-            # Set session data
-            request.session["name"] = user.first_name
-            request.session["email"] = user.email
+            # After login, ensure the role is set in the session if not already set
             if "role" not in request.session:
-                request.session["role"] = "Job Seeker"  # Default role
+                request.session["role"] = "Job Seeker"  # Default to "Job Seeker" or fetch role from user
 
-            messages.success(request, "Login successful!")
-            return redirect("role")  # Make sure 'role' is defined in urls.py
-        else:
-            messages.error(request, "Invalid credentials.")
+            return redirect("role")  # Redirect to role page after successful login
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
 
-
-@login_required
-def apply_for_job(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
-
-    # Fix: change applicant → user
-    if JobApplication.objects.filter(job=job, user=request.user).exists():
-        messages.info(request, "You have already applied for this job.")
-    else:
-        JobApplication.objects.create(job=job, user=request.user)
-        messages.success(request, "You have successfully applied for the job.")
-
-    return redirect('job_detail', job_id=job.id)
-
-
-@login_required
-def dashboard(request):
-    role = request.GET.get('role', '')
-
-    if role == "Job_Seeker":
-        jobs = Job.objects.all()
-        context = {
-            "role": role,
-            "jobs": jobs
-        }
-    elif role == "Employer":
-        jobs = Job.objects.filter(employer=request.user)
-
-        job_applicants = {}
-        for job in jobs:
-            applications = JobApplication.objects.filter(job=job).select_related("user")
-            job_applicants[job.id] = [app.user for app in applications]
-
-        context = {
-            "role": role,
-            "jobs": jobs,
-            "job_applicants": job_applicants,
-        }
-    else:
-        return redirect("role")
-
-    return render(request, "dashboard.html", context)
