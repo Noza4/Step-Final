@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Job Board Dashboard</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
@@ -14,32 +13,94 @@
   </header>
 
   <div class="container dashboard-container">
-    <div class="search-bar">
-      <input type="text" placeholder="Search for jobs...">
-      <button class="btn">Search</button>
-    </div>
-
-    <!-- Job Seeker Section -->
-    {% if role == "Job Seeker" %}
-    <section id="user-section" class="job-section">
+    {% if role == "Job_Seeker" %}
       <h2>Available Jobs</h2>
-
-      {% if jobs %}
-        <div class="job-list">
-          {% for job in jobs %}
+      <div class="job-list">
+        {% for job in jobs %}
           <div class="job-card">
             <h3>{{ job.title }}</h3>
             <p><strong>Company:</strong> {{ job.company_name }}</p>
             <p><strong>Work Type:</strong> {{ job.work_type }}</p>
-            <button class="btn apply-btn">Apply Now</button>
+            <a href="{% url 'job_detail' job.id %}" class="btn apply-btn">Apply Now</a>
           </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p>No jobs available at the moment.</p>
-      {% endif %}
-    </section>
+        {% empty %}
+          <p>No jobs available.</p>
+        {% endfor %}
+      </div>
+    {% elif role == "Employer" %}
+      <h2>Your Posted Jobs</h2>
+      <div class="job-list">
+        {% for job in jobs %}
+          <div class="job-card">
+            <h3>{{ job.title }}</h3>
+            <p><strong>Company:</strong> {{ job.company_name }}</p>
+            <p><strong>Work Type:</strong> {{ job.work_type }}</p>
+            <button class="btn edit-btn">Edit Vacancy</button>
+          </div>
+        {% empty %}
+          <p>You haven't posted any jobs yet.</p>
+        {% endfor %}
+      </div>
+      <div class="post-job">
+        <h3>Post a New Job</h3>
+        <form id="post-job-form">
+          {% csrf_token %}
+          <div class="form-group">
+            <label for="job-title">Job Title</label>
+            <input type="text" id="job-title" name="title" placeholder="Enter job title" required>
+          </div>
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input type="text" id="company" name="company_name" placeholder="Company name" required>
+          </div>
+          <div class="form-group">
+            <label for="work-type">Work Type</label>
+            <select id="work-type" name="work_type" required>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Office">Office</option>
+            </select>
+          </div>
+          <button type="button" class="btn" id="post-job-btn">Post Job</button>
+        </form>
+      </div>
     {% endif %}
   </div>
+
+  <script>
+    document.getElementById('post-job-btn').addEventListener('click', function() {
+      // Get the form data
+      const title = document.getElementById('job-title').value;
+      const company_name = document.getElementById('company').value;
+      const work_type = document.getElementById('work-type').value;
+
+      // Create the POST request
+      fetch("{% url 'post_job_api' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+          title: title,
+          company_name: company_name,
+          work_type: work_type
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.title) {
+          alert("Job posted successfully!");
+          location.reload(); // Reload the page to see the new job
+        } else {
+          alert("Error posting job!");
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert("Error posting job!");
+      });
+    });
+  </script>
 </body>
 </html>

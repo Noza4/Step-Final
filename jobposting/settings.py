@@ -76,9 +76,9 @@ WSGI_APPLICATION = 'jobposting.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'Job_Posting',
-        'USER': 'Postgres',
+        'USER': 'postgres',
         'PASSWORD': 'Nikolozi',
         'HOST': 'Localhost',
         "PORT": "5432",
@@ -131,3 +131,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# LOGIN_REDIRECT_URL = '/role/'

@@ -16,14 +16,18 @@ Including another URLconf
 """
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth.views import LoginView
 from django.urls import path, include
 
-from jobposting import settings
 from post.urls import url_patterns
-
+from post.views import post_job, job_detail, custom_login, role_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(url_patterns)),
+    path('api/post-job/', post_job, name='post_job_api'),
+    path('job/<int:job_id>/', job_detail, name='job_detail'),
+    path('login/', custom_login, name='login'),
+    path('role', role_page, name='role'),
 ]
 

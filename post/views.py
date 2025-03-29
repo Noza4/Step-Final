@@ -1,10 +1,18 @@
 import urllib
-from django.shortcuts import render, redirect
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib import messages
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from post.models import Job
+from post.serializers import JobSerializer
 
 
 def register(request):
@@ -39,6 +47,7 @@ def register(request):
     return render(request, "index.html")
 
 
+@login_required
 def role_page(request):
     if not request.user.is_authenticated:  # Ensure the user is logged in
         return redirect("login")  # Redirect to login page if not authenticated
@@ -59,12 +68,57 @@ def role_page(request):
     return render(request, "role.html", context)
 
 
+@login_required
 def dashboard(request):
-    role = request.GET.get('role', 'Job Seeker')  # Get role from request (optional)
-    jobs = Job.objects.all()  # Query all jobs from the database
+    role = request.GET.get('role', '')
+
+    if role == "Job_Seeker":
+        # Show all available jobs
+        jobs = Job.objects.all()
+    elif role == "Employer":
+        # Show only jobs posted by the logged-in employer
+        jobs = Job.objects.filter(employer=request.user)
+    else:
+        # Redirect if role is not specified
+        return redirect("role")
 
     context = {
-        'role': role,
-        'jobs': jobs  # Pass jobs to template
+        "role": role,
+        "jobs": jobs
     }
-    return render(request, 'dashboard.html', context)
+
+    return render(request, "dashboard.html", context)
+
+
+@api_view(['POST'])
+def post_job(request):
+    if request.method == 'POST':
+        serializer = JobSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # Save the new job
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def job_detail(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, 'JobDetail.html', {'job': job})
+
+
+def custom_login(request):
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            print("Login successful, redirecting to role page...")  # Debug message
+
+            # After login, ensure the role is set in the session if not already set
+            if "role" not in request.session:
+                request.session["role"] = "Job Seeker"  # Default to "Job Seeker" or fetch role from user
+
+            return redirect("role")  # Redirect to role page after successful login
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
+
