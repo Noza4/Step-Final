@@ -107,18 +107,21 @@ def job_detail(request, job_id):
 
 def custom_login(request):
     if request.method == "POST":
-        form = AuthenticationForm(data=request.POST)
+        form = AuthenticationForm(request, data=request.POST)  # Pass request here
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            print("Login successful, redirecting to role page...")  # Debug message
 
-            # After login, ensure the role is set in the session if not already set
+            # Set session data
+            request.session["name"] = user.first_name
+            request.session["email"] = user.email
             if "role" not in request.session:
-                request.session["role"] = "Job Seeker"  # Default to "Job Seeker" or fetch role from user
+                request.session["role"] = "Job Seeker"  # Default role
 
-            return redirect("role")  # Redirect to role page after successful login
+            messages.success(request, "Login successful!")
+            return redirect("role")  # Make sure 'role' is defined in urls.py
+        else:
+            messages.error(request, "Invalid credentials.")
     else:
         form = AuthenticationForm()
     return render(request, 'login.html', {'form': form})
-
